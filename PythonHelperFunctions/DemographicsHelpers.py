@@ -14,7 +14,7 @@ from scipy.linalg import block_diag
 
 def SetAgeDistribution(demoFile, surveyFile):
 
-    df = pd.from_csv(surveyFile)
+    df = pd.read_csv(surveyFile)
     df.drop(labels=['Unnamed: 0', 'name', 'Total'], axis=1, inplace=True)
     ds = df.sum(axis=0)
     ds = (ds/ds.sum()).cumsum()
@@ -31,18 +31,20 @@ def SetAgeDistribution(demoFile, surveyFile):
             "DistributionValues": EMODAgeDist
             }
         })
+    for key in ['AgeDistributionFlag', 'AgeDistribution1', 'AgeDistribution2']:
+        demoFile.content['Defaults']['IndividualAttributes'].pop(key, None)
 
     return demoFile
 
-def TranmissionMatrixFromAgeContactMatrix(filename):
+def TransmissionMatrixFromAgeContactMatrix(filename):
     df = pd.read_excel(filename, sheet_name='United States of America', header=None)
     return np.array(df.values.tolist())
 
 def SetPropertyDependentTransmission(demoFile,
                           TransmissionMatrix_pre, TransmissionMatrix_post, Time_start=40, Duration=2000):
-    agedistbins = demoFile.content['Defaults']['IndividualAttributes']['AgeDistribution']['ResultValues'][:-1]
-    agedistvals = demoFile.content['Defaults']['IndividualAttributes']['AgeDistribution']['DistributionValues'][1:]
-
+    agedistbins = demoFile.content['Defaults']['IndividualAttributes']['AgeDistribution']['ResultValues'][:-3]
+    agedistvals = np.diff(demoFile.content['Defaults']['IndividualAttributes']['AgeDistribution']['DistributionValues'][:-2]).tolist()
+    agedistvals[len(agedistvals)-1]=1-sum(agedistvals[:-1])
     propvals = [str(i) + "_" + str(i + 4) + "_pre" for i in agedistbins]
     transitions = []
     for property in propvals:
@@ -61,16 +63,16 @@ def SetPropertyDependentTransmission(demoFile,
     propvals = propvals + ([str(i) + "_" + str(i + 4) + "_post" for i in agedistbins])
     TransmissionMatrix = block_diag(TransmissionMatrix_pre, TransmissionMatrix_post)
 
-    demoFile.content['Defaults']['IndividualProperties']= {
+    demoFile.content['Defaults']['IndividualProperties']= [{
         "Property": "Geographic",
         "Values": propvals,
-        "Initial_Distribution": agedistvals,
+        "Initial_Distribution": agedistvals+[0]*len(agedistvals),
         "Transitions": [],
         "TransmissionMatrix": {
             "Route": "Contact",
-            "Matrix": TransmissionMatrix
+            "Matrix": TransmissionMatrix.tolist()
         }
-    }
+    }]
 
     return demoFile
 

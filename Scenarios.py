@@ -28,7 +28,7 @@ import numpy as np
 SetupParser.default_block = "HPC"
 SetupParser.init(selected_block=SetupParser.default_block)
 
-ScenarioName = "Calibration2"
+ScenarioName = "PerfectSchoolClosureForever"
 # Set the path for DTK input files
 BaseInputPath = load_input_path()
 if not os.path.exists(BaseInputPath):
@@ -76,7 +76,7 @@ WorkTransmissionMatrix = TransmissionMatrixFromAgeContactMatrix(filename = os.pa
 
 demoFile = SetPropertyDependentTransmission(demoFile, TransmissionMatrix_pre=TotalTransmissionMatrix,
                                             TransmissionMatrix_post=TotalTransmissionMatrix-SchoolTransmissionMatrix,
-                                            Time_start=2000, Duration=2000)  #Set up a bunch of default properties.
+                                            Time_start=72, Duration=2000)  #Set up a bunch of default properties.
 
 demoFile.generate_file(os.path.join(OutputPath, 'input_files', os.path.basename(DemoFile)))
 cb.dump_files(working_directory=os.path.join(OutputPath, 'input_files'))
@@ -99,7 +99,7 @@ def sample_point_fn(CB, params_dict, sample_index):
         else:
             CB.set_param(param, value)
             tags[param] = value
-    CB.set_param('Run_Number', random.randint(1, 1e4) )
+    CB.set_param('Run_Number', sample_index)
     tags['__sample_index__']=sample_index
     return tags
 
@@ -109,26 +109,29 @@ if __name__ == "__main__":
 
     #A dictionary of parameters to sample, and the range to sample from
     sample_dimension_dict = {}
-    sample_dimension_dict['Base_Infectivity_Constant'] = [0.05, 0.8]
+    sample_dimension_dict['Base_Infectivity_Constant'] = [0.3, 0.5]
 
     #Doing a parameter sweep uses a list of abstract functions, here contained in mod_fns.  These functions basically
     #change values in the "cb" object that contains the config and campaign files, as a dict and a class, respectively.
     mod_fns = []
     random.seed(12884)
-    nSamples = 1000
-    LHSsamps = lhs(len(sample_dimension_dict), samples=nSamples)
+    nSamples = 500
+    samples = {}
+    samples['Base_Infectivity_Constant'] = np.linspace(sample_dimension_dict['Base_Infectivity_Constant'][0],
+                          sample_dimension_dict['Base_Infectivity_Constant'][1],
+                          nSamples)
 
     for ix in range(nSamples):
         param_dict = {}
         currDim = 0
         for param, paramRange in sample_dimension_dict.items():
-            param_dict[param] = paramRange[0] + (paramRange[1]-paramRange[0])*LHSsamps[ix][currDim]
+            param_dict[param] = samples[param][ix]
             currDim += 1
         mod_fns.append(ModFn(sample_point_fn, param_dict, ix))
 
     builder = ModBuilder.from_combos(mod_fns)
 
-    exp_name = 'Simple Sweep sampling over R0'
+    exp_name = 'Perfect School Closure Forever'
     exp_manager = ExperimentManagerFactory.from_cb(cb)
 
     run_sim_args = {'config_builder': cb,
