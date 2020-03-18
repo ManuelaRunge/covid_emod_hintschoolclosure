@@ -24,8 +24,8 @@ def load_dropbox_path(user_path=None):
 
 def load_output_path():
     base_path = load_dropbox_path()
-    return os.path.join(base_path, 'Measles Team Folder', 'Projects', 'Covid19_schoolclosure', 'outputs')
+    return os.path.join(base_path, 'COVID-19','emod-simulations','2020_03-Covid19KingCountyInterventions', 'outputs')
 
 def load_input_path():
     base_path = load_dropbox_path()
-    return os.path.join(base_path, 'Measles Team Folder', 'Projects', 'Covid19_schoolclosure', 'BaseInputFiles')
+    return os.path.join(base_path, 'COVID-19','emod-simulations','2020_03-Covid19KingCountyInterventions', 'BaseInputFiles')
