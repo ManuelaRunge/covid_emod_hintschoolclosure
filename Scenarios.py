@@ -28,7 +28,8 @@ import numpy as np
 SetupParser.default_block = "HPC"
 SetupParser.init(selected_block=SetupParser.default_block)
 
-ScenarioName = "PerfectSchoolClosureForever"
+ScenarioName = "HomeOnlyForever"
+InterventionDuration=2000
 # Set the path for DTK input files
 BaseInputPath = load_input_path()
 if not os.path.exists(BaseInputPath):
@@ -75,8 +76,8 @@ WorkTransmissionMatrix = TransmissionMatrixFromAgeContactMatrix(filename = os.pa
 
 
 demoFile = SetPropertyDependentTransmission(demoFile, TransmissionMatrix_pre=TotalTransmissionMatrix,
-                                            TransmissionMatrix_post=TotalTransmissionMatrix-SchoolTransmissionMatrix,
-                                            Time_start=72, Duration=2000)  #Set up a bunch of default properties.
+                                            TransmissionMatrix_post=HomeTransmissionMatrix,
+                                            Time_start=72, Duration=InterventionDuration)  #Set up a bunch of default properties.
 
 demoFile.generate_file(os.path.join(OutputPath, 'input_files', os.path.basename(DemoFile)))
 cb.dump_files(working_directory=os.path.join(OutputPath, 'input_files'))
@@ -131,7 +132,7 @@ if __name__ == "__main__":
 
     builder = ModBuilder.from_combos(mod_fns)
 
-    exp_name = 'Perfect School Closure Forever'
+    exp_name = ScenarioName
     exp_manager = ExperimentManagerFactory.from_cb(cb)
 
     run_sim_args = {'config_builder': cb,

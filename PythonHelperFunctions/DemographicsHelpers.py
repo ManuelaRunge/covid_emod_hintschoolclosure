@@ -67,7 +67,7 @@ def SetPropertyDependentTransmission(demoFile,
         "Property": "Geographic",
         "Values": propvals,
         "Initial_Distribution": agedistvals+[0]*len(agedistvals),
-        "Transitions": [],
+        "Transitions": transitions,
         "TransmissionMatrix": {
             "Route": "Contact",
             "Matrix": TransmissionMatrix.tolist()
